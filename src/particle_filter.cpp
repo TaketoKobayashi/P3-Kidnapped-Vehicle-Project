@@ -192,14 +192,15 @@ void ParticleFilter::resample() {
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 	std::default_random_engine gen;
 	std::discrete_distribution<int> dist(weights.begin(), weights.end());
-	int index = int(dist(gen) * num_particles);
+	//int index = int(dist(gen) * num_particles);
+	int index = dist(gen);
 
-	std::vector<Particle> resample_p(num_particles);
+	std::vector<Particle> resample_p;
 	double beta = 0.0;
-	vector<double>::iterator biggest = std::max_element(std::begin(weights), std::end(weights));
+	vector<double>::iterator biggest = std::max_element(weights.begin(), weights.end());
 	double mw = *biggest;
 	for(int i = 0; i < num_particles; i++) {
-		beta += dist(gen) * 2.0 * mw;
+		beta += 2.0 * mw * dist(gen) / num_particles;
 		while(beta > weights[index]) {
 			beta -= weights[index];
 			index = (index + 1) % num_particles;
