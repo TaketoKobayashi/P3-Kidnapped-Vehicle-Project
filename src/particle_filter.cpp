@@ -185,7 +185,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         particles[i].weight = 1.0;
 
         for(int m = 0; m < landmark_map.size(); m++) {
-            Map::single_landmark_s landmark = map_landmarks.landmark_list.at(landmark_map[m].id);
+            Map::single_landmark_s landmark = map_landmarks.landmark_list.at(landmark_map[m].id - 1); //map landmark id is from 1 to N.
             double x_w = (landmark_map[m].x - landmark.x_f) * (landmark_map[m].x - landmark.x_f) * x_coff;
             double y_w = (landmark_map[m].y - landmark.y_f) * (landmark_map[m].y - landmark.y_f) * y_coff;
             double weigh = xy_coff * exp(-1.0 * (x_w + y_w));
