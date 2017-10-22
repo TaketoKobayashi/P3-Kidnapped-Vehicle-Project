@@ -71,7 +71,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
             particles[i].y = particles[i].y + velocity * sin(particles[i].theta) * delta_t;
         }
 
-        // TODO: add noise or not? in init function, it is already add noise.
         particles[i].x += dist_x(gen);
         particles[i].y += dist_y(gen);
         particles[i].theta += yaw(gen);
@@ -85,6 +84,11 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
     //   observed measurement to this particular landmark.
     // NOTE: this method will NOT be called by the grading code. But you will probably find it useful to
     //   implement this method and use it as a helper during the updateWeights phase.
+
+    if(predicted.size() == 0 || observations.size() == 0) {
+        cout << "Empty data. Data error." << endl;
+        return;
+    }
 
     for(int i = 0; i < observations.size(); i++ ) {
         double x0 = observations[i].x;
@@ -165,16 +169,26 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
         dataAssociation(filter_obs_landmark, landmark_map);
 
+        std::vector<int> associations;
+        std::vector<double> sense_x;
+        std::vector<double> sense_y;
+
+        for(int i = 0; i < landmark_map.size(); i++) {
+            associations.push_back(landmark_map[i].id);
+            sense_x.push_back(landmark_map[i].x);
+            sense_y.push_back(landmark_map[i].y);
+        }
+
+        SetAssociations(particles[i], associations, sense_x, sense_y);
+
         //set initial value
         particles[i].weight = 1.0;
 
         for(int m = 0; m < landmark_map.size(); m++) {
-            Map::single_landmark_s landmark = map_landmarks.landmark_list.at(landmark_map[m].id - 1);
+            Map::single_landmark_s landmark = map_landmarks.landmark_list.at(landmark_map[m].id);
             double x_w = (landmark_map[m].x - landmark.x_f) * (landmark_map[m].x - landmark.x_f) * x_coff;
             double y_w = (landmark_map[m].y - landmark.y_f) * (landmark_map[m].y - landmark.y_f) * y_coff;
             double weigh = xy_coff * exp(-1.0 * (x_w + y_w));
-
-            //double ParticleFilter::CalGaussian(LandmarkObs predicted, LandmarkObs sensor, double std[]);
 
             particles[i].weight *= weigh;
         }
@@ -211,7 +225,7 @@ void ParticleFilter::resample() {
 }
 
 Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y) {
-    //particle: the particle to assign each listed association, and association's (x,y) world coordinates mapping to
+    // particle: the particle to assign each listed association, and association's (x,y) world coordinates mapping to
     // associations: The landmark id that goes along with each listed association
     // sense_x: the associations x mapping already converted to world coordinates
     // sense_y: the associations y mapping already converted to world coordinates
