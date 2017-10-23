@@ -132,6 +132,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //   3.33
     //   http://planning.cs.uiuc.edu/node99.html
 
+    if(observations.size() == 0 || map_landmarks.size() == 0) {
+        cout << "Empty data. Data error." << endl;
+        return;
+    }
+
     weights.clear();
 
     double x_coff = 1.0 / (2.0 * std_landmark[0] * std_landmark[0]);
@@ -205,10 +210,9 @@ void ParticleFilter::resample() {
     //   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     std::default_random_engine gen;
     std::discrete_distribution<int> dist(weights.begin(), weights.end());
-    //int index = int(dist(gen) * num_particles);
-    int index = dist(gen);
 
     std::vector<Particle> resample_p;
+    /* this is uniform real distribution for resample wheel
     double beta = 0.0;
     vector<double>::iterator biggest = std::max_element(weights.begin(), weights.end());
     double mw = *biggest;
@@ -220,6 +224,12 @@ void ParticleFilter::resample() {
         }
         resample_p.push_back(particles[index]);
     }
+    */
+    for(int i = 0; i < num_particles; i++) {
+        int index = dist(gen);
+        resample_p.at(i) = particles.at(index);
+    }
+
     particles.assign(resample_p.begin(), resample_p.end() );
     return;
 }
